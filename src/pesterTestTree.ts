@@ -1,6 +1,7 @@
 /** Represents a test result returned from pester, serialized into JSON */
 
-import { TestController, TestItem, Uri } from 'vscode'
+import { Range, TestController, TestItem, Uri } from 'vscode'
+import log from './log'
 
 /** Represents all types that are allowed to be present in a test tree. This can be a single type or a combination of
  * types and organization types such as suites
@@ -15,21 +16,7 @@ export const TestData = new WeakMap<TestItem, TestTree>()
 /**
  * Possible states of tests in a test run.
  */
-export enum TestResultState {
-	// Test will be run, but is not currently running.
-	Queued = 1,
-	// Test is currently running
-	Running = 2,
-	// Test run has passed
-	Passed = 3,
-	// Test run has failed (on an assertion)
-	Failed = 4,
-	// Test run has been skipped
-	Skipped = 5,
-	// Test run failed for some other reason (compilation error, timeout, etc)
-	Errored = 6
-}
-
+export type TestResultState = string
 /** Represents an individual Pester .tests.ps1 file, or an active document in the editor. This is just a stub to be used
  * for type identification later, the real work is done in {@link PesterTestController.getOrCreateFile()}
  */
@@ -65,8 +52,11 @@ export class TestFile {
 		if (existing) {
 			return existing
 		}
+		log.trace('Creating test item for file: ' + uriFsPath)
 		const fileTestItem = controller.createTestItem(
 			uriFsPath,
+			// TODO: Fix non-null assertion
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			uri.path.split('/').pop()!,
 			uri
 		)
@@ -103,9 +93,8 @@ export interface TestDefinition extends TestItemOptions {
 	description?: string
 	error?: string
 	tags?: string[]
+	scriptBlock?: string
 }
-
-export class TestDefinition {}
 
 /** The type used to represent a test run from the Pester runner, with additional status data */
 export interface TestResult extends TestItemOptions {
@@ -119,4 +108,9 @@ export interface TestResult extends TestItemOptions {
 	targetFile: string
 	targetLine: number
 	description?: string
+}
+
+/** Given a testdefinition, fetch the vscode range */
+export function getRange(testDef: TestDefinition): Range {
+	return new Range(testDef.startLine, 0, testDef.endLine, 0)
 }

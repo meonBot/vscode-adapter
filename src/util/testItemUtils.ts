@@ -1,4 +1,5 @@
 import { TestItem, TestItemCollection } from 'vscode'
+import { TestDefinition, TestTree } from '../pesterTestTree'
 
 /** Returns a Set of all TestItems and their children recursively in the collection. This assumes all your test IDs are unique, duplicates will be replaced **/
 export function getUniqueTestItems(collection: TestItemCollection) {
@@ -28,7 +29,8 @@ export function findTestItem(id: string, collection: TestItemCollection) {
 	let match: TestItem | undefined
 	while (queue.length) {
 		const currentCollection = queue.shift()
-		currentCollection!.forEach(item => {
+		if (!currentCollection) { return }
+		currentCollection.forEach(item => {
 			if (item.id === id) {
 				match = item
 			}
@@ -56,6 +58,12 @@ export async function forAll(
 	})
 }
 
+/** Removes all items from a test item collection */
+export async function clear(collection: TestItemCollection) {
+	collection.forEach((item, collection) => collection.delete(item.id))
+}
+
+
 /** Gets the parents of the TestItem */
 export function getParents(TestItem: TestItem) {
 	const parents = []
@@ -66,3 +74,8 @@ export function getParents(TestItem: TestItem) {
 	}
 	return parents
 }
+
+export function isTestItemOptions(testItem: TestTree): testItem is TestDefinition {
+	return 'type' in testItem
+}
+

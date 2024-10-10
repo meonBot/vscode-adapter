@@ -1,25 +1,59 @@
-// See https://go.microsoft.com/fwlink/?LinkId=733558
-// for the documentation about the tasks.json format
 {
-	"version": "2.0.0",
-	"tasks": [
+  "version": "2.0.0",
+  "tasks": [
 		{
+			"label": "build-watch",
+			"icon": {
+				"color": "terminal.ansiBlue",
+				"id": "sync"
+			},
 			"type": "npm",
-			"script": "watch",
+			"script": "build-watch",
 			"group": "build",
 			"problemMatcher": "$esbuild-watch",
-			"isBackground": true,
-			"label": "npm: watch"
+			"isBackground": true
 		},
 		{
-			"type": "npm",
-			"script": "build",
-			"group": {
-				"kind": "build",
-				"isDefault": true
+			"label": "build-test-vscode-watch",
+			"icon": {
+				"color": "terminal.ansiBlue",
+				"id": "beaker"
 			},
-			"problemMatcher": "$esbuild",
-			"label": "npm: build"
+			"type": "npm",
+			"script": "build-test-vscode-watch",
+			"group": "build",
+			"problemMatcher": "$esbuild-watch",
+			"isBackground": true
+		},
+		{
+			"label": "test-watch",
+			"icon": {
+				"color": "terminal.ansiBlue",
+				"id": "beaker"
+			},
+			"type": "npm",
+			"script": "test-watch",
+			"group": "test",
+			"isBackground": true,
+			"problemMatcher": {
+				"owner": "typescript",
+				"source": "mocha",
+				"pattern": {
+					"regexp": "\\w+?(Error): (.+)\\w+?\\((.+)\\)",
+					"severity": 1,
+					"message": 2,
+					"file": 3
+				},
+				"severity": "info",
+				"fileLocation": ["relative", "${workspaceFolder}"],
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "  ",
+					"endsPattern": {
+						"regexp": "^ℹ \\[mocha\\] waiting for changes...$"
+					}
+				}
+			}
 		}
 	]
 }

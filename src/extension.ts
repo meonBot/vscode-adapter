@@ -1,75 +1,109 @@
-import { ExtensionContext, window, workspace, commands } from 'vscode'
+import { type ExtensionContext, window, workspace, Disposable, WorkspaceConfiguration, Extension } from 'vscode'
 import {
-	autoRunStatusBarItem,
-	autoRunStatusBarVisibleEvent,
-	toggleAutoRunOnSaveCommand,
-	updateAutoRunStatusBarOnConfigChange
-} from './features/toggleAutoRunOnSaveCommand'
-import { VSCodeOutputChannelTransport } from './log'
-import { PesterTestController } from './pesterTestController'
-import {
-	getPowerShellExtension,
-	PowerShellExtensionClient
+	waitForPowerShellExtension,
+	PowerShellExtensionClient,
+	IPowerShellExtensionClient
 } from './powershellExtensionClient'
-export async function activate(context: ExtensionContext) {
-	// PowerShell extension is a prerequisite, but we allow either preview or normal, which is why we do this instead of
-	// leverage package.json dependencies
-	const powershellExtension = getPowerShellExtension(context)
+import { watchWorkspace } from './workspaceWatcher'
+import log, { VSCodeLogOutputChannelTransport } from './log'
 
-	// Short circuit this activate call if we didn't find a PowerShell Extension. Another activate will be triggered once
-	// the powershell extension is available
-	if (!powershellExtension) {
-		return
+export async function activate(context: ExtensionContext) {
+
+	log.attachTransport(new VSCodeLogOutputChannelTransport('Pester').transport)
+
+	subscriptions = context.subscriptions
+
+	// PowerShell extension is a prerequisite
+	const powershellExtension = await waitForPowerShellExtension()
+	pesterExtensionContext = {
+		extensionContext: context,
+		powerShellExtension: powershellExtension,
+		powershellExtensionPesterConfig: PowerShellExtensionClient.GetPesterSettings()
 	}
 
+	promptForPSLegacyCodeLensDisable()
+
+	await watchWorkspace()
+
+	// TODO: Rig this up for multiple workspaces
+	// const stopPowerShellCommand = commands.registerCommand('pester.stopPowershell', () => {
+	// 	if (controller.stopPowerShell()) {
+	// 		void window.showInformationMessage('PowerShell background process stopped.')
+	// 	} else {
+	// 		void window.showWarningMessage('No PowerShell background process was running !')
+	// 	}
+	// })
+
+	// context.subscriptions.push(
+	// 	controller,
+	// 	stopPowerShellCommand,
+	// )
+
+}
+
+/** Register a Disposable with the extension so that it can be cleaned up if the extension is disabled */
+export function registerDisposable(disposable: Disposable) {
+	if (subscriptions == undefined) {
+		throw new Error('registerDisposable called before activate. This should never happen and is a bug.')
+	}
+	subscriptions.push(disposable)
+}
+
+export function registerDisposables(disposables: Disposable[]) {
+	subscriptions.push(Disposable.from(...disposables))
+}
+
+let subscriptions: Disposable[]
+
+type PesterExtensionContext = {
+	extensionContext: ExtensionContext
+	powerShellExtension: Extension<IPowerShellExtensionClient>
+	powershellExtensionPesterConfig: WorkspaceConfiguration
+}
+
+/** Get the activated extension context */
+export function getPesterExtensionContext() {
+	if (pesterExtensionContext == undefined) {
+		throw new Error('Pester Extension Context attempted to be fetched before activation. This should never happen and is a bug')
+	}
+
+	return pesterExtensionContext
+}
+let pesterExtensionContext: PesterExtensionContext
+
+function promptForPSLegacyCodeLensDisable() {
 	// Disable PowerShell codelens setting if present
-	const psExtensionCodeLensSetting =
-		PowerShellExtensionClient.GetPesterSettings().codeLens
-	const suppressCodeLensNotice = workspace
-		.getConfiguration('pester')
-		.get<boolean>('suppressCodeLensNotice')
+	const powershellExtensionConfig = PowerShellExtensionClient.GetPesterSettings()
+
+	const psExtensionCodeLensSetting: boolean = powershellExtensionConfig.codeLens
+
+	const suppressCodeLensNotice = workspace.getConfiguration('pester').get<boolean>('suppressCodeLensNotice') ?? false
 
 	if (psExtensionCodeLensSetting && !suppressCodeLensNotice) {
-		window
-			.showInformationMessage(
-				'The Pester Tests extension recommends disabling the built-in PowerShell Pester CodeLens. Would you like to do this?',
-				'Yes',
-				'Workspace Only',
-				'No',
-				'Dont Ask Again'
-			)
-			.then(response => {
-				switch (response) {
-					case 'No': {
-						return
-					}
-					case 'Yes': {
-						workspace
-							.getConfiguration('powershell.pester')
-							.update('codeLens', false, true)
-						break
-					}
-					case 'Workspace Only': {
-						workspace
-							.getConfiguration('powershell.pester')
-							.update('codeLens', false, false)
-						break
-					}
-					case 'Dont Ask Again': {
-						workspace
-							.getConfiguration('pester')
-							.update('suppressCodeLensNotice', true, true)
-						break
-					}
+		void window.showInformationMessage(
+			'The Pester Tests extension recommends disabling the built-in PowerShell Pester CodeLens. Would you like to do this?',
+			'Yes',
+			'Workspace Only',
+			'No',
+			'Dont Ask Again'
+		).then(async response => {
+			switch (response) {
+				case 'No': {
+					return
 				}
-			})
+				case 'Yes': {
+					await powershellExtensionConfig.update('codeLens', false, true)
+					break
+				}
+				case 'Workspace Only': {
+					await powershellExtensionConfig.update('codeLens', false, false)
+					break
+				}
+				case 'Dont Ask Again': {
+					await workspace.getConfiguration('pester').update('suppressCodeLensNotice', true, true)
+					break
+				}
+			}
+		})
 	}
-
-	context.subscriptions.push(
-		new PesterTestController(powershellExtension, context),
-		toggleAutoRunOnSaveCommand,
-		autoRunStatusBarItem,
-		autoRunStatusBarVisibleEvent,
-		updateAutoRunStatusBarOnConfigChange
-	)
 }

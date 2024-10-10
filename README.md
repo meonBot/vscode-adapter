@@ -2,8 +2,9 @@
 [![Latest](https://img.shields.io/visual-studio-marketplace/v/pspester.pester-test?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=pspester.pester-test)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/pspester.pester-test?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=pspester.pester-test)
 [![vsix](https://img.shields.io/github/v/release/pester/vscode-adapter?label=vsix&sort=semver&style=flat-square)](https://github.com/pester/vscode-adapter/releases)
-[![Build](https://img.shields.io/github/workflow/status/pester/vscode-adapter/%F0%9F%91%B7%E2%80%8D%E2%99%82%EF%B8%8F%20Build%20Visual%20Studio%20Code%20Extension?style=flat-square)](https://github.com/pester/vscode-adapter/actions/workflows/ci.yml)
-[![Analysis](https://img.shields.io/github/workflow/status/pester/vscode-adapter/%F0%9F%94%8E%20CodeQL/main?label=codeQL&style=flat-square)](https://github.com/pester/vscode-adapter/actions/workflows/codeql-analysis.yml)
+[![Build](https://img.shields.io/github/workflow/status/pester/vscode-adapter/ci.yml?style=flat-square)](https://github.com/pester/vscode-adapter/actions/workflows/ci.yml)
+[![Analysis](https://img.shields.io/github/workflow/status/pester/vscode-adapter/codeql-analysis.yml/main?label=codeQL&style=flat-square)](https://github.com/pester/vscode-adapter/actions/workflows/codeql-analysis.yml)
+
 [![License: MIT](https://img.shields.io/npm/l/tslog?logo=tslog&style=flat-square)](https://tldrlegal.com/license/mit-license)
 [![GitHub stars](https://img.shields.io/github/stars/pester/vscode-adapter?style=social)](https://github.com/pester/vscode-adapter)
 
@@ -16,10 +17,10 @@ This extension provides the ability to run [Pester](https://pester.dev/) tests u
 
 ### Highlights
 
-🔍 **Pester Test Browser** <br>
-🐞 **Debugging Support** <br>
-👩‍💻 **Uses PowerShell Integrated Terminal** <br>
-👨‍👧‍👦 **Expands Test Cases** <br>
+🔍 **Pester Test Browser**
+🐞 **Debugging Support**
+👩‍💻 **Native PowerShell Extension Integration**
+👨‍👧‍👦 **Expands Test Cases**
 
 ### Extension Prerequisites
 
@@ -45,3 +46,12 @@ Preview VSIX extension packages are generated upon every commit to main and ever
 ### Configuration
 
 This extension will use the PowerShell Extension Pester verbosity settings for the output.
+
+### Troubleshooting
+
+The Pester `Output` pane maintains a log of the activities that occur with the Pester extension. You can use `Set Log Level` in the command palette to increase the log level to debug or trace to get more information about what is going on. Include this information when submitting an issue along with reproduction steps.
+
+### Known Issues
+
+- For test history purposes, a test is uniquely identified by its full path, e.g. Describe/Context/It. If you rename a test or move a test to another context/describe, it will be treated as a new test and test history will be reset
+- If you do not have any .tests.ps1 files in your directory upon startup, you will currently need to reload vscode for the extension to activate after you create the .tests.ps1 file. [This is is a known issue that is being tracked](https://github.com/pester/vscode-adapter/issues/122)

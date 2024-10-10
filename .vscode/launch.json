@@ -5,62 +5,53 @@
 {
 	"version": "0.2.0",
 	"configurations": [
-    {
-      "name": "Run Extension",
-      "type": "extensionHost",
-      "request": "launch",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--install-extension=ms-vscode.powershell-preview",
-        "${workspaceFolder}/sample"
-      ],
-      "env": {
-        "VSCODE_DEBUG_MODE": "true"
-      },
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
-      ],
-      "sourceMaps": true,
-      "smartStep": true,
-      "skipFiles": [
-        "**/log.ts",
-        "**/node_modules/**",
-        "C:/users/jgrote/AppData/Local/Programs/Microsoft VS Code Insiders/**/*.js",
-        "**/app/dist/vs/**",
-        "**\\app\\dist\\vs\\**",
-        "<node_internals>/**"
-      ],
-
-      "preLaunchTask": "npm: watch"
-    },
-    {
-      "name": "Run Extension UI Tests",
-      "type": "extensionHost",
-      "request": "launch",
-			"cwd": "${workspaceFolder}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/dist/test",
-        "--install-extension=ms-vscode.powershell-preview",
-        "${workspaceFolder}/sample"
-      ],
-      "env": {
-        "VSCODE_DEBUG_MODE": "true"
-      },
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
-      ],
-      "sourceMaps": true,
-      "smartStep": true,
-      "skipFiles": [
-        "**/log.ts",
-        "**/node_modules/**",
-        "C:/users/jgrote/AppData/Local/Programs/Microsoft VS Code Insiders/**/*.js",
-        "**/app/dist/vs/**",
-        "**\\app\\dist\\vs\\**",
-        "<node_internals>/**"
-      ],
-      "preLaunchTask": "npm: watch"
-    }
-  ]
+		{
+			"name": "Run Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"--profile=Debug-PesterExtension",
+				"--trace-warnings",
+				"${workspaceFolder}/test/TestEnvironment.code-workspace"
+			],
+			"env": {
+				"VSCODE_DEBUG_MODE": "true"
+			},
+			"presentation": {
+				"group": "_build"
+			},
+			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
+			"sourceMaps": true,
+			"autoAttachChildProcesses": true,
+			"skipFiles": ["<node_internals>/**", "**/extensionHostProcess.js", "**/.vscode/extensions/**"],
+			"showAsyncStacks": true,
+			"smartStep": true,
+			"preLaunchTask": "build-watch"
+		},
+		{
+			"name": "Run Extension Multi-Root Workspace",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"--profile=Debug-PesterExtension",
+				"--trace-warnings",
+				"${workspaceFolder}/sample/Tests.code-workspace"
+			],
+			"env": {
+				"VSCODE_DEBUG_MODE": "true"
+			},
+			"presentation": {
+				"group": "_build"
+			},
+			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
+			"sourceMaps": true,
+			"autoAttachChildProcesses": true,
+			"skipFiles": ["<node_internals>/**", "**/extensionHostProcess.js", "**/.vscode/extensions/**"],
+			"showAsyncStacks": true,
+			"smartStep": true,
+			"preLaunchTask": "build-watch"
+		}
+	]
 }
